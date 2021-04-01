@@ -1,6 +1,6 @@
 const { response } = require("express");
 const express = require("express");
-const { v4: uuidv4 } = require("uuid");
+const { v4: uuid } = require("uuid");
 
 const app = express();
 
@@ -17,7 +17,7 @@ const projects = [];
 app.post("/projects", (req, res) => {
     const { title, owner } = req.body;
 
-    const project = { id: uuidv4(), title, owner };
+    const project = { id: uuid(), title, owner };
 
     projects.push(project); // esse push vai jogar a criação do nosso projeto para o nosso array
 
@@ -29,21 +29,42 @@ app.get("/projects", (req, res) => {
 });
 
 app.put("/projects/:id", (req, res) => {
-    const params = req.params;
+    const { id } = req.params; // aqui pegamos nosso ID
+    const { title, owner } = req.body; // retornamos uma nova informação
 
-    console.log(params);
+    // aqui usamos o findIndex para percorrer todo o array atrás do id
+    // findIndex vai percorrer todos os projetos e toda vez que ele percorrer na variável project
+    // caso ela seja satisfeita e retornar true, ela vai retornar o id que está passando (project => project.id)
+    const projectIndex = projects.findIndex((project) => project.id === id);
 
-    return res.json([
-        "Projeto 50",
-        "Projeto 2",
-        "Projeto 3",
-        "Projeto 4",
-        "Projeto 5",
-    ]);
+    if (projectIndex < 0) {
+        return res.status(400).json({ error: "Projeto não foi encontrado" });
+    }
+
+    // agora que tem um índice, vai criar uma nova informação do projeto
+    const project = {
+        id,
+        title,
+        owner,
+    };
+
+    projects[projectIndex] = project;
+
+    return res.json(project);
 });
 
 app.delete("/projects/:id", (req, res) => {
-    return res.json(["Projeto 50", "Projeto 2"]);
+    const { id } = req.params;
+
+    const projectIndex = projects.findIndex((project) => project.id === id);
+
+    if (projectIndex < 0) {
+        return res.status(400).json({ error: "Projeto não foi encontrado" });
+    }
+
+    projects.splice(projectIndex, 1);
+
+    return res.status(204).send();
 });
 
 app.listen(3000);
